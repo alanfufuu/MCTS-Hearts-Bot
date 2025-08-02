@@ -8,10 +8,12 @@ class Player:
         self.takenHands = []
 
     def cardsToPass(self, gameState):
-        raise NotImplementedError
+        return self.hand[0:3]
     
     def cardToPlay(self, gameState):
         raise NotImplementedError
+    
+
 
 
 
