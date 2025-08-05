@@ -10,12 +10,11 @@ class Deck:
                 temp = Card(r, s)
                 self.cards.append(temp)
 
-
     def deal(self, numPlayers = 4, cardsPerPlayer = 13):
         hands = []
 
-        for i in numPlayers:
-            hand = self.cards[i * numPlayers : (i + 1) * numPlayers]
+        for i in range(numPlayers):
+            hand = self.cards[i * cardsPerPlayer : (i + 1) * cardsPerPlayer]
             hands.append(hand)
 
         self.cards.clear()
@@ -23,11 +22,6 @@ class Deck:
     
     def shuffle(self) -> None:
         random.shuffle(self.cards)
-
-
-
-
-
 
 
 
