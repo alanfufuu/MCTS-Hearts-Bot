@@ -5,7 +5,7 @@ from player import Player
 
 class GameState:
     def __init__(self, playerList):
-        self.players = [Player(name) for name in playerList]
+        self.players = playerList
         self.deck = Deck()
         self.hearts_broken = False
         self.hand_number = 1
@@ -13,6 +13,8 @@ class GameState:
         self.current_trick = []
         self.pass_direction = None
         self.currPlayerIndex = 0
+        self.round_number = 1
+        self.winning_card = None
 
         
     def deal_hands(self) -> None:
@@ -25,7 +27,7 @@ class GameState:
 
             self.players[i].hand.sort(key=lambda card: (card.suit.value, card.rank.value))
 
-    
+
     def pass_cards(self):
         #determine pass direction
         #collect cards to pass (player method)
@@ -36,8 +38,12 @@ class GameState:
             2 : -1,
             3: 2
         }
-        self.pass_direction = directions[(self.hand_number - 1) % 4]
+        self.pass_direction = directions[(self.round_number - 1) % 4]
         
+        if self.pass_direction == 0:
+            print(f'This is a no pass round')
+            return
+
         cardsToPass = [[] for _ in range(len(self.players))]
         for i, player in enumerate(self.players):
             temp = player.cardsToPass(self)
@@ -59,7 +65,7 @@ class GameState:
             for card in player.hand:
                 if card.suit == Suit.CLUBS and card.rank == Rank.Two:
                     self.currPlayerIndex = i
-                    print(f"The leader for this hand is {player.name} with the 2 of Clubs")
+                    print(f"The leader for this hand is {player.name} with the 2 of Clubs\n")
                     return
                 
     def legal_moves(self):
@@ -112,6 +118,8 @@ class GameState:
         numPlayers = len(self.players)
         leader_index = self.currPlayerIndex
 
+        print(f'Hand {self.hand_number}:')
+
         for i in range(numPlayers):
             curr_player_index = (leader_index + i) % numPlayers
             self.currPlayerIndex = curr_player_index
@@ -123,13 +131,16 @@ class GameState:
 
             if chosenCard in legal_moves:
                 curr_player.hand.remove(chosenCard)
-                self.current_trick.append((chosenCard, self.currPlayerIndex))
+                self.current_trick.append([chosenCard, self.currPlayerIndex])
                 print(f'{curr_player.name} plays the {chosenCard.rank.name} of {chosenCard.suit.value}')
+                if chosenCard.suit == Suit.HEARTS and not self.hearts_broken:
+                    self.hearts_broken = True
             else:
                 print("Illegal move")
                 break
 
         self.resolveTrick()
+        print(f'{self.players[self.currPlayerIndex].name} takes the trick with the {self.winning_card.rank.name} of {self.winning_card.suit.value}\n')
         
 
     def resolveTrick(self) -> None:
@@ -147,19 +158,24 @@ class GameState:
                     winner.append([card, playerIndex])
         
         self.currPlayerIndex = winner[0][1]
+        self.winning_card = winner[0][0]
         self.players[self.currPlayerIndex].takenHands.append(self.current_trick.copy())
         self.previous_tricks.append(self.current_trick.copy())
-        print(f'{self.players[self.currPlayerIndex].name} takes the trick with the {winner[0][0].rank.name} of {winner[0][0].suit.value}\n')
 
         self.hand_number += 1
         self.current_trick.clear() #clear trick
 
     def playRound(self):
+        self.hearts_broken = False
+        self.winning_card = None
+        self.previous_tricks.clear()
+        self.current_trick.clear()
+        self.deck = Deck()
         self.deal_hands()
         self.pass_cards()
         self.findLeader()
 
-        while(self.hand_number < 14):
+        for _ in range(13):
             self.playTrick()
 
         hand_scores = [0] * len(self.players)
@@ -177,29 +193,28 @@ class GameState:
             for i in range(len(self.players)):
                 if i == goat:
                     self.players[goat].score += 0
-                    self.players[goat].scoreHistory.append(self.players[goat].score)
                 else:
                     self.players[i].score += 26
-                    self.players[i].scoreHistory.append(self.players[i].score)
         else:
             for i in range(len(self.players)):
                 self.players[i].score += hand_scores[i]
-                self.players[i].scoreHistory.append(self.players[i].score)
               
-        print(f'\nFINAL ROUND SCORES')  
+        print(f'\nFINAL ROUND SCORES:')  
         for player in self.players:
             print(f"{player.name} has {player.score} points.")
 
+        self.hand_number = 1
+        self.round_number += 1
 
+
+    def is_terminal(self):
+        return all(len(p.hand) == 0 for p in self.players)
+
+    def make_move_helper(self, card) -> None: # for mcts bot training to advance game state by 1 card
+        current_player = self.players[self.currPlayerIndex]
+        current_player.hand.remove(card)
+        self.current_trick.append([card, self.currPlayerIndex])
+        self.currPlayerIndex = (self.currPlayerIndex+1) % len(self.players)
 
         
                 
-
-
-
-        
-
-        
-
-
-

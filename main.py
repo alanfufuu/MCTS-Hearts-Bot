@@ -1,10 +1,19 @@
 from gamestate import GameState
+from player import Player, MCTSPlayer
+import random
 
-playerList = ['Self', 'Bot 1', 'Bot 2', 'Bot 3']
-game1 = GameState(playerList)
+def playGame():
+    playerList = [MCTSPlayer("AI Bot"), Player("Bot 1"), Player("Bot 2"), Player("Bot 3"), ]
+    random.shuffle(playerList)
+    game1 = GameState(playerList)
+    
+    while all(p.score < 100 for p in game1.players):
+        game1.playRound()
+        print("-" * 20)
 
-game1.playRound()
+    winner = min(game1.players, key=lambda p: p.score)
+    print(f"\nGame Over! The winner is {winner.name} with a final score of {winner.score}.")
 
-
-
+if __name__ == "__main__":
+    playGame()
 

@@ -63,21 +63,3 @@ class Card:
         return self.rank.value < other.rank.value
     
 
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
