@@ -13,6 +13,7 @@ def playGame():
 
     winner = min(game1.players, key=lambda p: p.score)
     print(f"\nGame Over! The winner is {winner.name} with a final score of {winner.score}.")
+    print("test")
 
 if __name__ == "__main__":
     playGame()
