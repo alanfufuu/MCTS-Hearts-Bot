@@ -12,6 +12,7 @@ class GameState:
         self.previous_tricks = []
         self.current_trick = []
         self.pass_direction = None
+        self.pass_direction_print = None
         self.currPlayerIndex = 0
         self.round_number = 1
         self.winning_card = None
@@ -38,7 +39,16 @@ class GameState:
             2 : -1,
             3: 2
         }
+
+        printDirections = {
+            0 : "No direction",
+            1 : "Left",
+            2 : "Right", 
+            3 : "Across"
+        }
+
         self.pass_direction = directions[(self.round_number - 1) % 4]
+        self.pass_direction_print = printDirections[(self.round_number - 1) % 4]
         
         if self.pass_direction == 0:
             print(f'This is a no pass round')
@@ -63,7 +73,7 @@ class GameState:
     def findLeader(self):
         for i, player in enumerate(self.players):
             for card in player.hand:
-                if card.suit == Suit.CLUBS and card.rank == Rank.Two:
+                if card.suit == Suit.Clubs and card.rank == Rank.Two:
                     self.currPlayerIndex = i
                     print(f"The leader for this hand is {player.name} with the 2 of Clubs\n")
                     return
@@ -75,10 +85,10 @@ class GameState:
 
         if not self.current_trick: #if the current trick is empty, aka the leader
             if firstTrick: #lead
-                return [card for card in playerHand if card.suit == Suit.CLUBS and card.rank == Rank.Two]
+                return [card for card in playerHand if card.suit == Suit.Clubs and card.rank == Rank.Two]
             else:
                 if not self.hearts_broken:
-                    nonHearts = [card for card in playerHand if card.suit != Suit.HEARTS]
+                    nonHearts = [card for card in playerHand if card.suit != Suit.Hearts]
                     if nonHearts:
                         return nonHearts
                     else:
@@ -93,7 +103,7 @@ class GameState:
 
             if initialSuitCards:
                 if firstTrick:
-                    nonPointInitialSuit = [card for card in initialSuitCards if not (card.suit == Suit.HEARTS or (card.suit == Suit.SPADES and card.rank == Rank.Queen))]
+                    nonPointInitialSuit = [card for card in initialSuitCards if not (card.suit == Suit.Hearts or (card.suit == Suit.Spades and card.rank == Rank.Queen))]
                     if nonPointInitialSuit:
                         return nonPointInitialSuit
                     else: 
@@ -102,7 +112,7 @@ class GameState:
                     return initialSuitCards
             else:
                 if firstTrick:
-                    nonPoints = [card for card in playerHand if not (card.suit == Suit.HEARTS or (card.suit == Suit.SPADES and card.rank == Rank.Queen))]
+                    nonPoints = [card for card in playerHand if not (card.suit == Suit.Hearts or (card.suit == Suit.Spades and card.rank == Rank.Queen))]
                     if nonPoints:
                         return nonPoints
                     else:
@@ -132,19 +142,18 @@ class GameState:
             if chosenCard in legal_moves:
                 curr_player.hand.remove(chosenCard)
                 self.current_trick.append([chosenCard, self.currPlayerIndex])
-                print(f'{curr_player.name} plays the {chosenCard.rank.name} of {chosenCard.suit.value}')
-                if chosenCard.suit == Suit.HEARTS and not self.hearts_broken:
+                print(f'{curr_player.name} plays the {chosenCard.rank.name} of {chosenCard.suit.name}')
+                if chosenCard.suit == Suit.Hearts and not self.hearts_broken:
                     self.hearts_broken = True
             else:
-                print("Illegal move")
-                break
+                print(f"Illegal move by {curr_player.name}: {chosenCard}")
+                raise ValueError("Player made illegal move")
 
         self.resolveTrick()
-        print(f'{self.players[self.currPlayerIndex].name} takes the trick with the {self.winning_card.rank.name} of {self.winning_card.suit.value}\n')
+        print(f'{self.players[self.currPlayerIndex].name} takes the trick with the {self.winning_card.rank.name} of {self.winning_card.suit.name}\n')
         
 
     def resolveTrick(self) -> None:
-
         initialSuit = self.current_trick[0][0].suit
 
         winner = []
@@ -182,9 +191,9 @@ class GameState:
         for i in range(len(self.players)):
             for trick in self.players[i].takenHands:
                 for[card, playerIndex] in trick:
-                    if card.suit == Suit.HEARTS:
+                    if card.suit == Suit.Hearts:
                         hand_scores[i] += 1
-                    if card.suit == Suit.SPADES and card.rank == Rank.Queen:
+                    if card.suit == Suit.Spades and card.rank == Rank.Queen:
                         hand_scores[i] += 13
             self.players[i].takenHands.clear()
 
@@ -214,6 +223,10 @@ class GameState:
         current_player = self.players[self.currPlayerIndex]
         current_player.hand.remove(card)
         self.current_trick.append([card, self.currPlayerIndex])
+
+        if card.suit == Suit.Hearts and not self.hearts_broken:
+            self.hearts_broken = True
+
         self.currPlayerIndex = (self.currPlayerIndex+1) % len(self.players)
 
         

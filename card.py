@@ -16,9 +16,7 @@ class Rank(enum.Enum):
     Ace = 14
 
     def __str__(self):
-        if(self.value > 10):
-            return self.name.capitalize()
-        return str(self.value)
+        return f'{self.rank.name} of {self.suit.name}'
     
     def __repr__(self):
         return f'Rank.{self.name}'
@@ -26,18 +24,52 @@ class Rank(enum.Enum):
 
 
 class Suit(enum.Enum): 
-    CLUBS = "Clubs"
-    DIAMONDS = "Diamonds"
-    HEARTS = "Hearts"
-    SPADES = "Spades"
+    Clubs = 0
+    Diamonds = 1
+    Hearts = 2
+    Spades = 3
 
     def __str__(self):
-        return f'{self.value}'
+        return f'{self.name}'
     
 class Card:
     def __init__(self, rank : Rank, suit : Suit):
         self.rank = rank
         self.suit = suit
+
+    @classmethod
+    def from_string(cls, string_rep : str): #from 2H, 4S, etc
+
+        if len(string_rep) == 3:
+            srank = string_rep[:2]
+            ssuit = string_rep[2]
+        else:
+            srank = string_rep[0]
+            ssuit = string_rep[1]
+
+        if srank.isdigit():
+            rank = Rank(int(srank))
+        elif srank.upper() == 'J':
+            rank = Rank.Jack
+        elif srank.upper() == 'Q':
+            rank = Rank.Queen
+        elif srank.upper() == 'K':
+            rank = Rank.King
+        elif srank.upper() == 'A':
+            rank = Rank.Ace
+        else:
+            raise ValueError(f"Invalid rank string: {srank}")
+
+        suits = {
+            'C': Suit.Clubs,
+            'D': Suit.Diamonds,
+            'H': Suit.Hearts,
+            'S': Suit.Spades,
+        }
+        suit = suits.get(ssuit.upper())
+        if not suit:
+            raise ValueError(f"Invalid suit string: {ssuit}")
+        return cls(rank, suit)
 
     def __str__(self):
         return f'{self.rank.name} of {self.suit.value}'
